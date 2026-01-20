@@ -14,20 +14,12 @@ class DApp {
         this.init();
     }
 
-    /**
-     * Initialize the application
-     */
     init() {
         this.setupEventListeners();
         this.checkInitialConnection();
         
-        // Initialize market chart
         this.market.initialize();
     }
-
-    /**
-     * Check if wallet is already connected
-     */
     async checkInitialConnection() {
         try {
             if (typeof window.ethereum !== 'undefined') {
@@ -44,40 +36,28 @@ class DApp {
         }
     }
 
-    /**
-     * Setup all event listeners
-     */
     setupEventListeners() {
-        // Connect wallet button
         this.ui.elements.connectWallet.addEventListener('click', async () => {
             await this.connectWallet();
         });
 
-        // Refresh balance button
         this.ui.elements.refreshBalance.addEventListener('click', async () => {
             await this.refreshBalance();
         });
 
-        // Transfer form submission
         this.ui.elements.transferForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             await this.handleTransfer();
         });
 
-        // Gas estimation button
         this.ui.elements.estimateGasBtn.addEventListener('click', async () => {
             await this.estimateGas();
         });
 
-        // Setup blockchain event listeners
         this.setupBlockchainListeners();
     }
 
-    /**
-     * Setup blockchain-specific event listeners
-     */
     setupBlockchainListeners() {
-        // Listen for account changes
         this.blockchain.onAccountChange(async (newAccount) => {
             if (newAccount) {
                 this.ui.showNotification('Account changed', 'info');
@@ -88,30 +68,23 @@ class DApp {
             }
         });
 
-        // Listen for network changes
         this.blockchain.onNetworkChange(() => {
             this.ui.showNotification('Network changed - reloading...', 'info');
         });
     }
 
-    /**
-     * Connect to MetaMask wallet
-     */
     async connectWallet() {
         try {
             this.ui.showLoading('Connecting to wallet...');
             this.ui.hideError();
 
-            // Connect to blockchain
             const connectionData = await this.blockchain.connectWallet();
             
-            // Update UI
             this.ui.updateConnectionStatus(
                 connectionData.account, 
                 connectionData.network
             );
 
-            // Get token details
             const tokenDetails = await this.blockchain.getTokenDetails();
             this.ui.updateContractInfo(
                 CONTRACT_ADDRESS,
@@ -119,10 +92,8 @@ class DApp {
                 tokenDetails.symbol
             );
 
-            // Get initial balance
             await this.refreshBalance();
 
-            // Setup transfer event listener
             this.setupTransferListener();
 
             this.isConnected = true;
@@ -136,9 +107,6 @@ class DApp {
         }
     }
 
-    /**
-     * Update account information when account changes
-     */
     async updateAccountInfo(newAccount) {
         try {
             this.ui.showLoading('Updating account...');
@@ -155,9 +123,6 @@ class DApp {
         }
     }
 
-    /**
-     * Refresh balance display
-     */
     async refreshBalance() {
         try {
             this.ui.showLoading('Refreshing balance...');
@@ -165,7 +130,6 @@ class DApp {
             const balance = await this.blockchain.getBalance();
             this.ui.updateBalance(balance);
             
-            // Update portfolio value based on current market price
             this.market.updatePortfolioValue(balance);
             
         } catch (error) {
@@ -175,9 +139,6 @@ class DApp {
         }
     }
 
-    /**
-     * Estimate gas for transfer
-     */
     async estimateGas() {
         try {
             const formData = this.ui.validateTransferForm();
@@ -200,9 +161,6 @@ class DApp {
         }
     }
 
-    /**
-     * Handle token transfer
-     */
     async handleTransfer() {
         try {
             const formData = this.ui.validateTransferForm();
@@ -211,13 +169,11 @@ class DApp {
             this.ui.hideError();
             this.ui.setTransferButtonState(false);
 
-            // Execute transfer
             const txData = await this.blockchain.transfer(
                 formData.recipient,
                 formData.amount
             );
 
-            // Add pending transaction to history
             const transaction = {
                 hash: txData.hash,
                 from: txData.from,
@@ -231,19 +187,15 @@ class DApp {
             this.ui.hideLoading();
             this.ui.showNotification('Transaction submitted! Waiting for confirmation...', 'info');
 
-            // Wait for confirmation
             this.ui.showLoading('Waiting for confirmation...');
             const receipt = await txData.wait();
 
-            // Update transaction status
             if (receipt.status === 1) {
                 this.ui.updateTransactionStatus(txData.hash, 'success');
                 this.ui.showNotification('Transfer successful!', 'success');
                 
-                // Refresh balance after successful transfer
                 await this.refreshBalance();
                 
-                // Reset form
                 this.ui.resetTransferForm();
             } else {
                 this.ui.updateTransactionStatus(txData.hash, 'failed');
@@ -251,7 +203,6 @@ class DApp {
             }
 
         } catch (error) {
-            // Handle user rejection separately
             if (error.message.includes('rejected')) {
                 this.ui.showNotification('Transaction rejected by user', 'info');
             } else {
@@ -265,14 +216,10 @@ class DApp {
         }
     }
 
-    /**
-     * Setup Transfer event listener
-     */
     setupTransferListener() {
         this.blockchain.listenForTransfers(async (eventData) => {
             console.log('Transfer event detected:', eventData);
             
-            // Show notification for incoming transfers
             if (eventData.to.toLowerCase() === this.blockchain.account.toLowerCase()) {
                 this.ui.showNotification(
                     `Received ${eventData.amount} STM from ${this.ui.formatAddress(eventData.from)}`,
@@ -280,19 +227,14 @@ class DApp {
                 );
             }
 
-            // Refresh balance when any transfer involving current account occurs
             await this.refreshBalance();
         });
     }
 
-    /**
-     * Handle wallet disconnect
-     */
     handleDisconnect() {
         this.isConnected = false;
         this.blockchain.cleanup();
         
-        // Reset UI
         this.ui.elements.connectionStatus.classList.add('hidden');
         this.ui.elements.mainContent.classList.add('hidden');
         this.ui.elements.connectWallet.textContent = 'Connect Wallet';
@@ -300,15 +242,12 @@ class DApp {
     }
 }
 
-// Initialize the dApp when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     const app = new DApp();
     
-    // Make app instance globally accessible for debugging
     window.dApp = app;
 });
 
-// Handle page unload
 window.addEventListener('beforeunload', () => {
     if (window.dApp) {
         if (window.dApp.blockchain) {

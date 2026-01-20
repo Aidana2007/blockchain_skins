@@ -8,18 +8,13 @@ export class BlockchainService {
         this.provider = null;
         this.signer = null;
 
-        // Separate contracts for safety
-        this.readContract = null;   // provider only
-        this.writeContract = null;  // signer only
+        this.readContract = null;   
+        this.writeContract = null; 
 
         this.account = null;
         this.eventListeners = new Map();
         this._decimalsCache = null;
     }
-
-    /* -------------------------------------------------- */
-    /* Initialization                                     */
-    /* -------------------------------------------------- */
 
     async initialize() {
         if (!window.ethereum) {
@@ -28,7 +23,6 @@ export class BlockchainService {
 
         this.provider = new ethers.providers.Web3Provider(window.ethereum);
 
-        // Read-only contract (safe for name/balanceOf/etc)
         this.readContract = new ethers.Contract(
             this.contractAddress,
             this.abi,
@@ -53,7 +47,6 @@ export class BlockchainService {
             this.account = accounts[0];
             this.signer = this.provider.getSigner();
 
-            // Write contract (only for txs)
             this.writeContract = new ethers.Contract(
                 this.contractAddress,
                 this.abi,
@@ -78,10 +71,6 @@ export class BlockchainService {
         if (!this.account) throw new Error('Wallet not connected');
         return this.account;
     }
-
-    /* -------------------------------------------------- */
-    /* Token helpers (SAFE)                                */
-    /* -------------------------------------------------- */
 
     async _safeCall(fn, fallback = null) {
         try {
@@ -132,10 +121,6 @@ export class BlockchainService {
         }
     }
 
-    /* -------------------------------------------------- */
-    /* Transfers                                          */
-    /* -------------------------------------------------- */
-
     async transfer(to, amount) {
         try {
             if (!ethers.utils.isAddress(to)) {
@@ -175,9 +160,36 @@ export class BlockchainService {
         }
     }
 
-    /* -------------------------------------------------- */
-    /* Events                                             */
-    /* -------------------------------------------------- */
+    async compareGasEstimates(to, amount) {
+        try {
+            if (!this.writeContract) {
+                throw new Error('Wallet not connected');
+            }
+
+            const decimals = await this.getDecimals();
+            const value = ethers.utils.parseUnits(amount.toString(), decimals);
+
+            const successfulGas = await this.writeContract.estimateGas.transfer(to, value);
+
+            let failingGas;
+            try {
+                const hugeAmount = ethers.utils.parseUnits("9999999999999", decimals);
+                failingGas = await this.writeContract.estimateGas.transfer(to, hugeAmount);
+            } catch (error) {
+                failingGas = 'Transaction would fail (reverts)';
+            }
+
+            return {
+                successfulTransfer: successfulGas.toString(),
+                failingTransfer: failingGas,
+                comparison: failingGas === 'Transaction would fail (reverts)'
+                    ? 'Failing transactions revert before using all gas'
+                    : 'Both transactions estimate similar gas'
+            };
+        } catch (error) {
+            throw this.handleError(error);
+        }
+    }
 
     listenForTransfers(callback) {
         if (!this.readContract || !this.account) return;
@@ -212,11 +224,6 @@ export class BlockchainService {
             this.eventListeners.delete('Transfer');
         }
     }
-
-    /* -------------------------------------------------- */
-    /* MetaMask listeners                                 */
-    /* -------------------------------------------------- */
-
     onAccountChange(cb) {
         window.ethereum?.on('accountsChanged', (accs) => {
             this.account = accs?.[0] || null;
@@ -230,10 +237,6 @@ export class BlockchainService {
             window.location.reload();
         });
     }
-
-    /* -------------------------------------------------- */
-    /* Error handling                                     */
-    /* -------------------------------------------------- */
 
     handleError(error) {
         console.error('Blockchain Error:', error);

@@ -3,20 +3,16 @@
 export class MarketManager {
     constructor() {
         this.chart = null;
-        this.currentPrice = 0.00025; // Starting price in ETH
+        this.currentPrice = 0.00025; 
         this.priceHistory = [];
         this.updateInterval = null;
         this.initializePriceHistory();
     }
 
-    /**
-     * Initialize with historical price data (simulated)
-     */
     initializePriceHistory() {
         const now = Date.now();
         const hoursAgo = 24;
         
-        // Generate realistic price history for last 24 hours
         for (let i = hoursAgo; i >= 0; i--) {
             const timestamp = now - (i * 60 * 60 * 1000);
             const basePrice = 0.00025;
@@ -37,10 +33,6 @@ export class MarketManager {
         // Set current price to latest in history
         this.currentPrice = this.priceHistory[this.priceHistory.length - 1].price;
     }
-
-    /**
-     * Initialize the price chart
-     */
     initializeChart() {
         const ctx = document.getElementById('priceChart');
         if (!ctx) return;

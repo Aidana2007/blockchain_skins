@@ -1,88 +1,83 @@
-// config.js - Configuration and ABI
-
 // Replace with your deployed contract address
-export const CONTRACT_ADDRESS = '0x5b68d4c37A1E930dF8625eB020b805c3f0eDb6d9';
+// For production, load from environment variable
+export const CONTRACT_ADDRESS = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
 
-// STeamToken ABI
 export const CONTRACT_ABI = [
-    // Read functions
     {
-        "inputs": [{"internalType": "address", "name": "account", "type": "address"}],
+        "inputs": [{ "internalType": "address", "name": "account", "type": "address" }],
         "name": "balanceOf",
-        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
         "stateMutability": "view",
         "type": "function"
     },
     {
         "inputs": [],
         "name": "totalSupply",
-        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
         "stateMutability": "view",
         "type": "function"
     },
     {
         "inputs": [],
         "name": "name",
-        "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+        "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
         "stateMutability": "view",
         "type": "function"
     },
     {
         "inputs": [],
         "name": "symbol",
-        "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+        "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
         "stateMutability": "view",
         "type": "function"
     },
     {
         "inputs": [],
         "name": "decimals",
-        "outputs": [{"internalType": "uint8", "name": "", "type": "uint8"}],
+        "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }],
         "stateMutability": "view",
         "type": "function"
     },
-    // Write functions
     {
         "inputs": [
-            {"internalType": "address", "name": "to", "type": "address"},
-            {"internalType": "uint256", "name": "amount", "type": "uint256"}
+            { "internalType": "address", "name": "to", "type": "address" },
+            { "internalType": "uint256", "name": "amount", "type": "uint256" }
         ],
         "name": "transfer",
-        "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
         "stateMutability": "nonpayable",
         "type": "function"
     },
-    // Events
     {
         "anonymous": false,
         "inputs": [
-            {"indexed": true, "internalType": "address", "name": "from", "type": "address"},
-            {"indexed": true, "internalType": "address", "name": "to", "type": "address"},
-            {"indexed": false, "internalType": "uint256", "name": "value", "type": "uint256"}
+            { "indexed": true, "internalType": "address", "name": "from", "type": "address" },
+            { "indexed": true, "internalType": "address", "name": "to", "type": "address" },
+            { "indexed": false, "internalType": "uint256", "name": "value", "type": "uint256" }
         ],
         "name": "Transfer",
         "type": "event"
     },
     {
-  "constant": true,
-  "inputs": [],
-  "name": "name",
-  "outputs": [{ "name": "", "type": "string" }],
-  "type": "function"
-}
+        "constant": true,
+        "inputs": [],
+        "name": "name",
+        "outputs": [{ "name": "", "type": "string" }],
+        "type": "function"
+    }
 
 
 ];
 
-// Network configurations
 export const NETWORKS = {
     1: 'Ethereum Mainnet',
     3: 'Ropsten Testnet',
     4: 'Rinkeby Testnet',
     5: 'Goerli Testnet',
     11155111: 'Sepolia Testnet',
-    31337: 'Hardhat Local',
-    1337: 'Ganache Local'
+    31337: 'Hardhat Local',  
+    1337: 'Ganache Local',
+    8545: 'Localhost'        
 };
 
-export const DEFAULT_NETWORK_ID = 31337; // Hardhat local network
+export const DEFAULT_NETWORK_ID = 31337;
