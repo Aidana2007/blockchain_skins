@@ -1,9 +1,11 @@
 // blockchain.js – hardened & CALL_EXCEPTION-safe version
+import { NFT_CONTRACT_ADDRESS, NFT_CONTRACT_ABI } from './config.js'
 
 export class BlockchainService {
     constructor(contractAddress, abi) {
         this.contractAddress = contractAddress;
         this.abi = abi;
+        this.nftReadContract = null
 
         this.provider = null;
         this.signer = null;
@@ -20,6 +22,11 @@ export class BlockchainService {
         if (!window.ethereum) {
             throw new Error('MetaMask is not installed');
         }
+        this.nftReadContract = new ethers.Contract(
+            NFT_CONTRACT_ADDRESS,
+            NFT_CONTRACT_ABI,
+            this.provider
+        );
 
         this.provider = new ethers.providers.Web3Provider(window.ethereum);
 
@@ -262,4 +269,31 @@ export class BlockchainService {
         this.removeTransferListener();
         this.eventListeners.clear();
     }
+    async getOwnedNFTs(address) {
+    const total = await this.nftReadContract.totalSupply()
+    const owned = []
+
+    for (let i = 0; i < total; i++) {
+        try {
+            const owner = await this.nftReadContract.ownerOf(i)
+            if (owner.toLowerCase() === address.toLowerCase()) {
+                owned.push(i)
+            }
+        } catch {}
+    }
+    return owned
+}
+
+async getTokenURI(tokenId) {
+    return await this._safeCall(
+        () => this.nftReadContract.tokenURI(tokenId),
+        null
+    )
+}
+
+async getAllMintedNFTs() {
+    const total = await this.nftReadContract.totalSupply()
+    return Array.from({ length: Number(total) }, (_, i) => i)
+}
+
 }

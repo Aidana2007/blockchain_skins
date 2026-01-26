@@ -2,6 +2,8 @@ import { BlockchainService } from './blockchain.js';
 import { UIManager } from './ui.js';
 import { MarketManager } from './market.js';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from './config.js';
+import { NFT_CONTRACT_ADDRESS } from './config.js'
+
 
 
 
@@ -93,6 +95,7 @@ class DApp {
             );
 
             await this.refreshBalance();
+            await this.loadNFTs()
 
             this.setupTransferListener();
 
@@ -240,6 +243,116 @@ class DApp {
         this.ui.elements.connectWallet.textContent = 'Connect Wallet';
         this.ui.elements.connectWallet.disabled = false;
     }
+//     async loadNFTs() {
+//     const section = document.getElementById('nftSection')
+//     const ownedList = document.getElementById('ownedNFTs')
+//     const mintedList = document.getElementById('mintedNFTs')
+
+//     ownedList.innerHTML = ''
+//     mintedList.innerHTML = ''
+
+//     const account = this.blockchain.getAccount()
+
+//     const owned = await this.blockchain.getOwnedNFTs(account)
+//     const minted = await this.blockchain.getAllMintedNFTs()
+
+//     owned.forEach(id => {
+//         const li = document.createElement('li')
+//         li.textContent = `Token #${id}`
+//         ownedList.appendChild(li)
+//     })
+
+//     minted.forEach(id => {
+//         const li = document.createElement('li')
+//         li.textContent = `Token #${id}`
+//         mintedList.appendChild(li)
+//     })
+
+//     section.classList.remove('hidden')
+// }
+async loadNFTs() {
+    try {
+        const section = document.getElementById('nftSection')
+        const ownedList = document.getElementById('ownedNFTs')
+        const mintedList = document.getElementById('mintedNFTs')
+
+        // Check if elements exist
+        if (!section || !ownedList || !mintedList) {
+            console.log('NFT elements not found')
+            return
+        }
+
+        ownedList.innerHTML = ''
+        mintedList.innerHTML = ''
+
+        const account = this.blockchain.getAccount()
+
+        // Check if the blockchain object has these methods
+        if (typeof this.blockchain.getOwnedNFTs !== 'function' || 
+            typeof this.blockchain.getAllMintedNFTs !== 'function') {
+            console.log('NFT functions not available on this contract - hiding NFT section')
+            section.classList.add('hidden')
+            return
+        }
+
+        let owned = []
+        let minted = []
+
+        // Try to call the functions with additional error handling
+        try {
+            owned = await this.blockchain.getOwnedNFTs(account)
+        } catch (e) {
+            console.log('getOwnedNFTs not available:', e.message)
+        }
+
+        try {
+            minted = await this.blockchain.getAllMintedNFTs()
+        } catch (e) {
+            console.log('getAllMintedNFTs not available:', e.message)
+        }
+
+        // If both calls failed, hide the section
+        if (owned.length === 0 && minted.length === 0) {
+            console.log('No NFT data available - hiding section')
+            section.classList.add('hidden')
+            return
+        }
+
+        // Show empty state if no NFTs
+        if (owned.length === 0) {
+            ownedList.innerHTML = '<li class="empty-state">No NFTs owned yet</li>'
+        } else {
+            owned.forEach(id => {
+                const li = document.createElement('li')
+                li.textContent = `Token #${id}`
+                ownedList.appendChild(li)
+            })
+        }
+
+        if (minted.length === 0) {
+            mintedList.innerHTML = '<li class="empty-state">No tokens minted yet</li>'
+        } else {
+            minted.forEach(id => {
+                const li = document.createElement('li')
+                li.textContent = `Token #${id}`
+                mintedList.appendChild(li)
+            })
+        }
+
+        // Update stats
+        document.getElementById('totalOwnedNFTs').textContent = owned.length
+        document.getElementById('totalMintedNFTs').textContent = minted.length
+
+        section.classList.remove('hidden')
+
+    } catch (error) {
+        console.error('Error loading NFTs:', error)
+        // Hide NFT section if there's an error
+        const section = document.getElementById('nftSection')
+        if (section) section.classList.add('hidden')
+    }
+}
+
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -247,7 +360,84 @@ document.addEventListener('DOMContentLoaded', () => {
     
     window.dApp = app;
 });
+// NFT Tab Switching Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const nftTabs = document.querySelectorAll('.nft-tab');
+    const nftTabContents = document.querySelectorAll('.nft-tab-content');
 
+    nftTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            
+            // Remove active class from all tabs
+            nftTabs.forEach(t => t.classList.remove('active'));
+            
+            // Hide all tab contents
+            nftTabContents.forEach(content => content.classList.add('hidden'));
+            
+            // Add active class to clicked tab
+            this.classList.add('active');
+            
+            // Show corresponding tab content
+            if (tabName === 'owned') {
+                document.getElementById('ownedNFTsTab').classList.remove('hidden');
+            } else if (tabName === 'minted') {
+                document.getElementById('mintedNFTsTab').classList.remove('hidden');
+            }
+        });
+    });
+});
+
+// Function to add NFT to the grid (example)
+function addNFTToGrid(nftData, isMinted = false) {
+    const gridId = isMinted ? 'mintedNFTsGrid' : 'ownedNFTsGrid';
+    const grid = document.getElementById(gridId);
+    
+    // Remove empty state if exists
+    const emptyState = grid.parentElement.querySelector('.empty-state');
+    if (emptyState) {
+        emptyState.style.display = 'none';
+    }
+    
+    const nftItem = document.createElement('div');
+    nftItem.className = 'nft-item';
+    nftItem.innerHTML = `
+        <div class="nft-item-image">${nftData.icon || '🎨'}</div>
+        <div class="nft-item-name">${nftData.name}</div>
+        <div class="nft-item-id">ID: ${nftData.id}</div>
+    `;
+    
+    grid.appendChild(nftItem);
+    
+    // Update stats
+    updateNFTStats();
+}
+
+// Function to update NFT statistics
+function updateNFTStats() {
+    const ownedCount = document.getElementById('ownedNFTsGrid').children.length;
+    const mintedCount = document.getElementById('mintedNFTsGrid').children.length;
+    
+    document.getElementById('totalOwnedNFTs').textContent = ownedCount;
+    document.getElementById('totalMintedNFTs').textContent = mintedCount;
+    
+    // Calculate estimated value (example: 0.01 ETH per NFT)
+    const totalValue = (ownedCount + mintedCount) * 0.01;
+    document.getElementById('nftCollectionValue').textContent = totalValue.toFixed(2) + ' ETH';
+}
+
+// Example: Add sample NFTs (call this after wallet connects)
+function loadSampleNFTs() {
+    // Sample owned NFTs
+    addNFTToGrid({ name: 'AK-47 Skin', id: '001', icon: '🔫' }, false);
+    addNFTToGrid({ name: 'Butterfly Knife', id: '002', icon: '🔪' }, false);
+    
+    // Sample minted NFTs
+    addNFTToGrid({ name: 'Dragon Lore', id: '101', icon: '🎨' }, true);
+}
+
+// Call this function when you want to test (e.g., after connecting wallet)
+loadSampleNFTs();
 window.addEventListener('beforeunload', () => {
     if (window.dApp) {
         if (window.dApp.blockchain) {

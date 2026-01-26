@@ -109,6 +109,69 @@
                 </div>
             </section>
 
+            <!-- NFT Collection Section -->
+            <section id="nftSection" class="card">
+                <div class="card-header">
+                    <h2>🎨 Your NFT Collection</h2>
+                    <p class="header-subtitle">Manage your CS:GO skin NFTs and minted tokens</p>
+                </div>
+                
+                <div class="nft-tabs">
+                    <button class="nft-tab active" data-tab="owned">
+                        <span>👛 Your NFTs</span>
+                    </button>
+                    <button class="nft-tab" data-tab="minted">
+                        <span>✨ Minted Tokens</span>
+                    </button>
+                </div>
+
+                <div class="nft-content">
+                    <div id="ownedNFTsTab" class="nft-tab-content active">
+                        <div id="ownedNFTsGrid" class="nft-grid">
+                            <!-- NFTs will be populated here by JavaScript -->
+                        </div>
+                        <div class="empty-state">
+                            <span class="empty-icon">🎭</span>
+                            <p>No NFTs in your collection yet</p>
+                        </div>
+                    </div>
+
+                    <div id="mintedNFTsTab" class="nft-tab-content hidden">
+                        <div id="mintedNFTsGrid" class="nft-grid">
+                            <!-- Minted NFTs will be populated here by JavaScript -->
+                        </div>
+                        <div class="empty-state">
+                            <span class="empty-icon">🌟</span>
+                            <p>You haven't minted any tokens yet</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nft-stats">
+                    <div class="info-row">
+                        <span class="info-label">
+                            <span class="info-icon">📦</span>
+                            Owned NFTs
+                        </span>
+                        <span id="totalOwnedNFTs" class="info-value">0</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">
+                            <span class="info-icon">⚡</span>
+                            Minted Tokens
+                        </span>
+                        <span id="totalMintedNFTs" class="info-value">0</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">
+                            <span class="info-icon">💰</span>
+                            Est. Collection Value
+                        </span>
+                        <span id="nftCollectionValue" class="info-value">0 ETH</span>
+                    </div>
+                </div>
+            </section>
+
             <!-- Transfer Section -->
             <section class="card transfer-card">
                 <div class="card-header">
@@ -295,3 +358,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="../scripts/app.js"></script>
+</body>
+</html>
