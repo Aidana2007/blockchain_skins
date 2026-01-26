@@ -73,5 +73,23 @@ describe("STeamToken – Professional Unit Tests", function () {
       token.transfer(user1.address, ownerBalance + 1n)
     ).to.be.reverted;
   });
+  // ✅ mint: owner can mint
+  it("Owner can mint tokens", async function () {
+    const amount = ethers.parseUnits("50", 18);
+
+    await token.mint(user1.address, amount);
+
+    const bal = await token.balanceOf(user1.address);
+    expect(bal).to.equal(amount);
+  });
+
+  // ✅ mint: non-owner cannot mint
+  it("Non-owner cannot mint tokens", async function () {
+    const amount = ethers.parseUnits("10", 18);
+
+    await expect(
+      token.connect(user1).mint(user1.address, amount)
+    ).to.be.reverted;
+  });
 
 });
