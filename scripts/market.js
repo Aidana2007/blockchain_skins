@@ -1,13 +1,15 @@
 // market.js - STM Market Price Chart and Analytics
 
 export class MarketManager {
-    constructor() {
+        constructor(onPriceUpdate) {
         this.chart = null;
         this.currentPrice = 0.00025; 
         this.priceHistory = [];
         this.updateInterval = null;
+        this.onPriceUpdate = onPriceUpdate; // New: callback for price changes
         this.initializePriceHistory();
     }
+
 
     initializePriceHistory() {
         const now = Date.now();
@@ -198,7 +200,9 @@ export class MarketManager {
         
         // Keep price in reasonable range
         this.currentPrice = Math.max(0.0001, Math.min(0.001, newPrice));
-        
+        if (this.onPriceUpdate) {
+            this.onPriceUpdate(this.currentPrice);
+        }
         // Add to history
         this.priceHistory.push({
             timestamp: Date.now(),

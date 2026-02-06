@@ -91,5 +91,42 @@ describe("STeamToken – Professional Unit Tests", function () {
       token.connect(user1).mint(user1.address, amount)
     ).to.be.reverted;
   });
+    // --- Fee Mechanism Tests with Dynamic Pricing ---
+
+  it("Should allow buying tokens and send 1% fee to deployer (base price)", async function () {
+    const currentPrice = await token.tokenPrice();
+    const buyAmountEth = ethers.parseEther("1.0");
+    const expectedFee = ethers.parseEther("0.01");
+    const netEth = buyAmountEth - expectedFee;
+    const expectedTokens = (netEth * BigInt(10 ** 18)) / currentPrice;
+
+    const ownerBalanceBefore = await ethers.provider.getBalance(owner.address);
+    await token.connect(user1).buyTokens({ value: buyAmountEth });
+    const ownerBalanceAfter = await ethers.provider.getBalance(owner.address);
+
+    expect(ownerBalanceAfter - ownerBalanceBefore).to.equal(expectedFee);
+    expect(await token.balanceOf(user1.address)).to.equal(expectedTokens);
+  });
+
+  it("Should update price and calculate tokens correctly", async function () {
+    const newPrice = ethers.parseEther("0.0005"); // Price doubled
+    await token.setPrice(newPrice);
+    
+    expect(await token.tokenPrice()).to.equal(newPrice);
+
+    const buyAmountEth = ethers.parseEther("1.0");
+    const expectedFee = ethers.parseEther("0.01");
+    const netEth = buyAmountEth - expectedFee;
+    const expectedTokens = (netEth * BigInt(10 ** 18)) / newPrice;
+
+    await token.connect(user1).buyTokens({ value: buyAmountEth });
+    expect(await token.balanceOf(user1.address)).to.equal(expectedTokens);
+  });
+
+  it("Should only allow owner to update price", async function () {
+    const newPrice = ethers.parseEther("0.001");
+    await expect(token.connect(user1).setPrice(newPrice)).to.be.reverted;
+  });
+
 
 });

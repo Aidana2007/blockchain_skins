@@ -296,4 +296,36 @@ async getAllMintedNFTs() {
     return Array.from({ length: Number(total) }, (_, i) => i)
 }
 
+    async updateContractPrice(newPriceEth) {
+        try {
+            if (!this.writeContract) {
+                throw new Error('Wallet not connected');
+            }
+
+            // Convert ETH price to Wei (standard for smart contracts)
+            const priceInWei = ethers.utils.parseEther(newPriceEth.toString());
+            
+            const tx = await this.writeContract.setPrice(priceInWei);
+            console.log('Price update transaction sent:', tx.hash);
+            
+            return await tx.wait();
+        } catch (err) {
+            console.error('Failed to update contract price:', err);
+            throw this.handleError(err);
+        }
+    }
+
+    async createCampaign(title, goalEth, durationDays) {
+        const goal = ethers.utils.parseEther(goalEth.toString());
+        const tx = await this.crowdfundingWrite.createCampaign(title, goal, durationDays);
+        return await tx.wait();
+    }
+
+    async contributeToCampaign(campaignId, amountEth) {
+        const amount = ethers.utils.parseEther(amountEth.toString());
+        const tx = await this.crowdfundingWrite.contribute(campaignId, { value: amount });
+        return await tx.wait();
+    }
+
+
 }

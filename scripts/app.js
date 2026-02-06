@@ -8,13 +8,15 @@ import { NFT_CONTRACT_ADDRESS } from './config.js'
 
 
 class DApp {
-    constructor() {
+        constructor() {
         this.blockchain = new BlockchainService(CONTRACT_ADDRESS, CONTRACT_ABI);
         this.ui = new UIManager();
-        this.market = new MarketManager();
+        // Pass a callback to the market manager
+        this.market = new MarketManager((newPrice) => this.handleMarketPriceChange(newPrice));
         this.isConnected = false;
         this.init();
     }
+
 
     init() {
         this.setupEventListeners();
@@ -243,6 +245,22 @@ class DApp {
         this.ui.elements.connectWallet.textContent = 'Connect Wallet';
         this.ui.elements.connectWallet.disabled = false;
     }
+    async handleMarketPriceChange(newPrice) {
+        if (!this.isConnected) return;
+
+        try {
+            // Optional: Only update if the user is the deployer/owner
+            // const owner = await this.blockchain.readContract.owner();
+            // if (this.blockchain.account.toLowerCase() !== owner.toLowerCase()) return;
+
+            console.log(`Syncing market price to blockchain: ${newPrice} ETH`);
+            await this.blockchain.updateContractPrice(newPrice);
+            this.ui.showNotification('Blockchain price synced with market', 'success');
+        } catch (error) {
+            console.error('Market sync failed:', error);
+            // Don't show error notification every 30s to avoid spamming the user
+        }
+    }
 
 async loadNFTs() {
     try {
@@ -404,4 +422,5 @@ window.addEventListener('beforeunload', () => {
             window.dApp.market.cleanup();
         }
     }
+    
 });

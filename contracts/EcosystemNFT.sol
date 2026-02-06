@@ -21,4 +21,20 @@ contract EcosystemNFT is ERC721URIStorage, Ownable {
 
         return tokenId;
     }
+        uint256 public constant NFT_SELL_PRICE = 0.01 ether;
+
+    function sellNFT(uint256 _tokenId) external {
+        require(ownerOf(_tokenId) == msg.sender, "Not the owner");
+        require(address(this).balance >= NFT_SELL_PRICE, "Contract lacks ETH");
+
+        // Transfer NFT to the contract (it must be approved first or use transferFrom)
+        _transfer(msg.sender, address(this), _tokenId);
+        
+        (bool success, ) = payable(msg.sender).call{value: NFT_SELL_PRICE}("");
+        require(success, "ETH transfer failed");
+    }
+
+    // Allow contract to receive ETH to pay for NFTs
+    receive() external payable {}
+
 }

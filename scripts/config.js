@@ -114,4 +114,15 @@ export const NFT_CONTRACT_ABI = [
         "stateMutability": "view",
         "type": "function"
     }
+    
 ]
+// crowdfunding
+export const CROWDFUNDING_ADDRESS = 'YOUR_DEPLOYED_CROWDFUNDING_ADDRESS';
+export const CROWDFUNDING_ABI = [
+    {"inputs": [{"internalType": "string", "name": "_title", "type": "string"}, {"internalType": "uint256", "name": "_goal", "type": "uint256"}, {"internalType": "uint256", "name": "_durationInDays", "type": "uint256"}], "name": "createCampaign", "outputs": [], "stateMutability": "nonpayable", "type": "function"},
+    {"inputs": [{"internalType": "uint256", "name": "_campaignId", "type": "uint256"}], "name": "contribute", "outputs": [], "stateMutability": "payable", "type": "function"},
+    {"inputs": [{"internalType": "uint256", "name": "_campaignId", "type": "uint256"}], "name": "finalizeCampaign", "outputs": [], "stateMutability": "nonpayable", "type": "function"},
+    {"inputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "name": "campaigns", "outputs": [{"internalType": "address", "name": "creator", "type": "address"}, {"internalType": "string", "name": "title", "type": "string"}, {"internalType": "uint256", "name": "goal", "type": "uint256"}, {"internalType": "uint256", "name": "deadline", "type": "uint256"}, {"internalType": "uint256", "name": "currentAmount", "type": "uint256"}, {"internalType": "bool", "name": "finalized", "type": "bool"}], "stateMutability": "view", "type": "function"},
+    {"inputs": [], "name": "campaignCount", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"}
+];
+
