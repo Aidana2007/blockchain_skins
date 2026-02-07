@@ -3,13 +3,13 @@ const User = require("../models/User");
 
 const createSkin = async (req, res) => {
   try {
-    const { name, priceSTM, description, image } = req.body;
+    const { name, priceSTM, description, image, blockchainId } = req.body;
 
     if (!name || !priceSTM) {
       return res.status(400).json({ msg: "Name and priceSTM are required" });
     }
 
-    const skin = new Skin({ name, priceSTM, description, image });
+    const skin = new Skin({ name, priceSTM, description, image, blockchainId });
     await skin.save();
 
     res.json(skin);
@@ -55,17 +55,20 @@ const buySkin = async (req, res) => {
       return res.status(400).json({ msg: "Skin already owned by someone else" });
     }
 
-    // Note: In production, you should verify the transaction on blockchain
-    // For now, we trust that the frontend sent the transaction
-    // The blockchainListener will update ownership when event is emitted
-
+    // SECURITY NOTE: This endpoint is for frontend convenience only
+    // The actual ownership update happens in blockchainListener.js
+    // when the SkinPurchased event is emitted from the smart contract
+    // In production, consider removing this endpoint entirely and
+    // relying solely on the blockchain listener for state updates
+    
     res.json({ 
-      msg: "Skin purchase initiated. Waiting for blockchain confirmation.",
-      transactionHash 
+      msg: "Skin purchase transaction received. Ownership will be updated when blockchain confirms the transaction.",
+      transactionHash,
+      note: "Please wait for blockchain confirmation"
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ msg: "Error purchasing skin" });
+    res.status(500).json({ msg: "Error processing skin purchase" });
   }
 };
 

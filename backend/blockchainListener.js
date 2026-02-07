@@ -27,7 +27,7 @@ const listen = () => {
 
           const campaign = new Campaign({
             title,
-            goal: ethers.formatEther(goal),
+            goal: goal.toString(), // Store as Wei string to preserve precision
             deadline: new Date(Number(deadline) * 1000),
             blockchainId: Number(id),
           });
@@ -58,18 +58,18 @@ const listen = () => {
         try {
           console.log("Skin purchased from blockchain:");
           console.log("  Buyer:", buyer);
-          console.log("  Skin ID:", skinId.toString());
+          console.log("  Blockchain Skin ID:", skinId.toString());
           console.log("  Price:", ethers.formatUnits(price, 18), "STM");
           console.log("  Platform Fee:", ethers.formatUnits(platformFee, 18), "STM");
 
-          // Find skin by ID and update owner
-          const skin = await Skin.findById(skinId.toString());
+          // Find skin by blockchainId (numeric ID from contract)
+          const skin = await Skin.findOne({ blockchainId: Number(skinId) });
           if (skin) {
             skin.owner = buyer;
             await skin.save();
             console.log(`Skin "${skin.name}" ownership updated to ${buyer}`);
           } else {
-            console.warn(`Skin with ID ${skinId.toString()} not found in database`);
+            console.warn(`Skin with blockchain ID ${skinId.toString()} not found in database`);
           }
         } catch (err) {
           console.error("Error updating skin ownership:", err);
