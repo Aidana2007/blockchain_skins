@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buy STM - STeam Market</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+
+    <div class="card" style="margin-bottom:20px">
+      <h2>Buy STM</h2>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <button id="connectWallet" class="btn btn-primary">🦊 Connect Wallet</button>
+        <button id="refreshBalance" class="btn btn-secondary">🔄 Refresh Balance</button>
+        <div id="walletInfo" style="opacity:.9"></div>
+        <div id="stmInfo" style="opacity:.9"></div>
+      </div>
+      <div id="status" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <h3>Buy STM by sending ETH</h3>
+
+      <div class="form-group">
+        <label>ETH Amount</label>
+        <input id="ethAmount" type="number" step="0.0001" min="0" placeholder="0.01" />
+      </div>
+
+      <button id="buyBtn" class="btn btn-primary btn-large">
+        Buy STM
+      </button>
+    </div>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+  <script type="module" src="../scripts/buy-stm.js"></script>
+</body>
+</html>
+
