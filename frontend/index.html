@@ -4,10 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>STeam Market - CS:GO Skin Trading</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
+
+        <div class="card" style="margin-bottom:20px">
+            <h2>Login / Register</h2>
+            <input id="email" type="email" placeholder="Email">
+            <input id="password" type="password" placeholder="Password">
+            <button id="loginBtn" class="btn btn-secondary">Login</button>
+            <button id="registerBtn" class="btn btn-secondary">Register</button>
+            <p id="authStatus"></p>
+        </div>
+
         <!-- Header Section -->
         <header class="header">
             <div class="header-content">
@@ -358,5 +368,64 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="../scripts/app.js"></script>
+
+    <script type="module">
+        import { AuthService } from "../scripts/auth.js";
+        import { BlockchainService } from "../scripts/blockchain.js";
+
+        const email = document.getElementById("email");
+        const password = document.getElementById("password");
+        const authStatus = document.getElementById("authStatus");
+
+        const loginBtn = document.getElementById("loginBtn");
+        const registerBtn = document.getElementById("registerBtn");
+        const connectWalletBtn = document.getElementById("connectWallet");
+
+        let isLoggedIn = false;
+
+        if (loginBtn) {
+            loginBtn.onclick = async () => {
+                try {
+                    authStatus.textContent = "";
+                    await AuthService.login(email.value, password.value);
+                    isLoggedIn = true;
+                    authStatus.textContent = "Logged in";
+                } catch (e) {
+                    authStatus.textContent = e.message;
+                }
+            };
+        }
+
+        if (registerBtn) {
+            registerBtn.onclick = async () => {
+                try {
+                    authStatus.textContent = "";
+                    await AuthService.register(email.value, password.value);
+                    authStatus.textContent = "Registered. Now login.";
+                } catch (e) {
+                    authStatus.textContent = e.message;
+                }
+            };
+        }
+
+        if (connectWalletBtn) {
+            connectWalletBtn.addEventListener("click", async (e) => {
+                if (!isLoggedIn) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    alert("Login first, then connect MetaMask.");
+                    return;
+                }
+
+                try {
+                    const blockchain = new BlockchainService();
+                    await blockchain.connectWallet();
+                    await AuthService.connectWallet(blockchain.account);
+                } catch (err) {
+                    alert(err.message);
+                }
+            }, true);
+        }
+    </script>
 </body>
 </html>

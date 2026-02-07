@@ -1,4 +1,3 @@
-// frontend/auth.js
 import { CONFIG } from "./config.js";
 
 export class AuthService {

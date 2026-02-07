@@ -1,5 +1,5 @@
 import { CROWDFUNDING_ADDRESS, CROWDFUNDING_ABI } from "./config.js";
-import { BlockchainService } from "./blockchain.js";
+import { BlockchainService } from "../frontend/blockchain.js";
 
 let blockchain = null;
 let account = null;

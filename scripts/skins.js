@@ -1,5 +1,5 @@
 import { API_BASE_URL, CONTRACT_ADDRESS, CONTRACT_ABI } from "./config.js";
-import { BlockchainService } from "./blockchain.js";
+import { BlockchainService } from "../frontend/blockchain.js";
 
 let blockchain = null;
 let account = null;
