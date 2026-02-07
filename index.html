@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STeam Market - CS:GO Skin Trading</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+
+        <div class="card" style="margin-bottom:20px">
+            <h2>Login / Register</h2>
+            <input id="email" type="email" placeholder="Email">
+            <input id="password" type="password" placeholder="Password">
+            <button id="loginBtn" class="btn btn-secondary">Login</button>
+            <button id="registerBtn" class="btn btn-secondary">Register</button>
+            <p id="authStatus"></p>
+        </div>
+
+        <!-- Header Section -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">🎮</div>
+                    <div>
+                        <h1>STeam Market</h1>
+                        <p class="subtitle">Trade CS:GO Skins with STM Tokens</p>
+                    </div>
+                </div>
+            </div>
+            <button id="connectWallet" class="btn btn-primary">
+                🦊 Connect Wallet
+            </button>
+        </header>
+
+        <!-- Connection Status -->
+        <div id="connectionStatus" class="status-card hidden">
+            <div class="status-content">
+                <span class="status-icon">✅</span>
+                <div>
+                    <span class="status-label">Connected Wallet</span>
+                    <span id="accountAddress" class="address"></span>
+                </div>
+            </div>
+            <div class="status-indicator connected"></div>
+        </div>
+
+        <!-- Error Display -->
+        <div id="errorDisplay" class="error-message hidden"></div>
+
+        <!-- Main Content -->
+        <main id="mainContent" class="main-content hidden">
+            
+            <!-- Balance Section -->
+            <section class="card balance-card">
+                <div class="card-header">
+                    <h2>💰 Your STM Balance</h2>
+                    <button id="refreshBalance" class="btn btn-secondary btn-icon">
+                        🔄 Refresh
+                    </button>
+                </div>
+                <div class="balance-display">
+                    <div class="balance-main">
+                        <span id="userBalance" class="balance-amount">0</span>
+                        <span class="token-symbol">STM</span>
+                    </div>
+                    <p class="balance-subtitle">Available for skin trading</p>
+                </div>
+                <div class="balance-info">
+                    <div class="info-badge">
+                        <span class="badge-icon">💎</span>
+                        <span>Trade CS:GO Skins</span>
+                    </div>
+                    <div class="info-badge">
+                        <span class="badge-icon">⚡</span>
+                        <span>Instant Transfers</span>
+                    </div>
+                    <div class="info-badge">
+                        <span class="badge-icon">🔒</span>
+                        <span>Secure Blockchain</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STM Market Price & Trend -->
+            <section class="card market-card">
+                <div class="card-header">
+                    <h2>📈 STM Market Value</h2>
+                    <div class="market-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Current Price</span>
+                            <span id="currentPrice" class="stat-value">0.00025 ETH</span>
+                        </div>
+                        <div class="stat-item" id="priceChangeContainer">
+                            <span class="stat-label">24h Change</span>
+                            <span id="priceChange" class="stat-value positive">+12.5%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="market-explanation">
+                    <p>💡 <strong>How STM Works:</strong> STM is a dynamic token - its value increases as more traders buy STM to purchase CS:GO skins, and decreases when traders sell. Buy low, sell high to maximize your profits!</p>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="priceChart"></canvas>
+                </div>
+
+                <div class="market-info">
+                    <div class="info-row-inline">
+                        <span class="info-label-inline">📊 Your Portfolio Value:</span>
+                        <span id="portfolioValue" class="portfolio-value">0.00 ETH</span>
+                    </div>
+                    <div class="info-row-inline">
+                        <span class="info-label-inline">🎯 1 STM =</span>
+                        <span id="stmEthRate" class="eth-rate">0.00025 ETH</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- NFT Collection Section -->
+            <section id="nftSection" class="card">
+                <div class="card-header">
+                    <h2>🎨 Your NFT Collection</h2>
+                    <p class="header-subtitle">Manage your CS:GO skin NFTs and minted tokens</p>
+                </div>
+                
+                <div class="nft-tabs">
+                    <button class="nft-tab active" data-tab="owned">
+                        <span>👛 Your NFTs</span>
+                    </button>
+                    <button class="nft-tab" data-tab="minted">
+                        <span>✨ Minted Tokens</span>
+                    </button>
+                </div>
+
+                <div class="nft-content">
+                    <div id="ownedNFTsTab" class="nft-tab-content active">
+                        <div id="ownedNFTsGrid" class="nft-grid">
+                            <!-- NFTs will be populated here by JavaScript -->
+                        </div>
+                        <div class="empty-state">
+                            <span class="empty-icon">🎭</span>
+                            <p>No NFTs in your collection yet</p>
+                        </div>
+                    </div>
+
+                    <div id="mintedNFTsTab" class="nft-tab-content hidden">
+                        <div id="mintedNFTsGrid" class="nft-grid">
+                            <!-- Minted NFTs will be populated here by JavaScript -->
+                        </div>
+                        <div class="empty-state">
+                            <span class="empty-icon">🌟</span>
+                            <p>You haven't minted any tokens yet</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nft-stats">
+                    <div class="info-row">
+                        <span class="info-label">
+                            <span class="info-icon">📦</span>
+                            Owned NFTs
+                        </span>
+                        <span id="totalOwnedNFTs" class="info-value">0</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">
+                            <span class="info-icon">⚡</span>
+                            Minted Tokens
+                        </span>
+                        <span id="totalMintedNFTs" class="info-value">0</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">
+                            <span class="info-icon">💰</span>
+                            Est. Collection Value
+                        </span>
+                        <span id="nftCollectionValue" class="info-value">0 ETH</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Transfer Section -->
+            <section class="card transfer-card">
+                <div class="card-header">
+                    <h2>💸 Send STM Tokens</h2>
+                    <p class="header-subtitle">Transfer tokens to buy skins or pay other traders</p>
+                </div>
+                
+                <form id="transferForm" class="transfer-form">
+                    <div class="form-group">
+                        <label for="recipientAddress">
+                            <span class="label-icon">👤</span>
+                            Recipient Wallet Address
+                        </label>
+                        <input 
+                            type="text" 
+                            id="recipientAddress" 
+                            placeholder="0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb" 
+                            required
+                            pattern="^0x[a-fA-F0-9]{40}$"
+                        >
+                        <span class="input-hint">Enter the Steam Market seller's wallet address</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="transferAmount">
+                            <span class="label-icon">💵</span>
+                            Amount (STM)
+                        </label>
+                        <input 
+                            type="number" 
+                            id="transferAmount" 
+                            placeholder="100" 
+                            min="0" 
+                            step="0.000001"
+                            required
+                        >
+                        <div class="amount-helper">
+                            <span class="input-hint">Available: <span id="availableBalance">0</span> STM</span>
+                        
+                        </div>
+                    </div>
+
+                    <!-- Gas Estimator -->
+                    <div class="gas-estimator">
+                        <div class="estimator-header">
+                            <h3>⛽ Gas Estimation</h3>
+                            <button type="button" id="estimateGasBtn" class="btn btn-small btn-outline">
+                                Calculate Gas
+                            </button>
+                        </div>
+                        <div class="gas-info">
+                            <div class="gas-item">
+                                <span class="gas-label">Estimated Gas Cost:</span>
+                                <span id="estimatedGas" class="gas-value">--</span>
+                            </div>
+                        </div>
+                        <div id="gasComparison" class="gas-comparison hidden">
+                            <p class="gas-note">💡 Gas comparison will appear here</p>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="transferBtn" class="btn btn-primary btn-large">
+                        <span class="btn-icon">🚀</span>
+                        Send Tokens
+                    </button>
+                </form>
+
+                <div class="transfer-note">
+                    <span class="note-icon">ℹ️</span>
+                    <p>Once you send STM tokens to a skin seller, they will deliver your CS:GO items to your Steam account</p>
+                </div>
+            </section>
+
+            <!-- CS:GO Skin Price Reference -->
+            <section class="card price-reference-card">
+                <div class="card-header">
+                    <h2>🎯 Popular Skin Prices (STM)</h2>
+                    <p class="header-subtitle">Approximate token values for common CS:GO skins</p>
+                </div>
+                <div class="price-grid">
+                    <div class="price-item">
+                        <div class="skin-icon">🔫</div>
+                        <div class="skin-info">
+                            <span class="skin-name">AK-47 | Redline</span>
+                            <span class="skin-price">~50 STM</span>
+                        </div>
+                    </div>
+                    <div class="price-item">
+                        <div class="skin-icon">🔪</div>
+                        <div class="skin-info">
+                            <span class="skin-name">Butterfly Knife</span>
+                            <span class="skin-price">~2,000 STM</span>
+                        </div>
+                    </div>
+                    <div class="price-item">
+                        <div class="skin-icon">🎨</div>
+                        <div class="skin-info">
+                            <span class="skin-name">AWP | Dragon Lore</span>
+                            <span class="skin-price">~5,000 STM</span>
+                        </div>
+                    </div>
+                    <div class="price-item">
+                        <div class="skin-icon">✨</div>
+                        <div class="skin-info">
+                            <span class="skin-name">M4A4 | Howl</span>
+                            <span class="skin-price">~3,500 STM</span>
+                        </div>
+                    </div>
+                    <div class="price-item">
+                        <div class="skin-icon">💎</div>
+                        <div class="skin-info">
+                            <span class="skin-name">Glock-18 | Fade</span>
+                            <span class="skin-price">~150 STM</span>
+                        </div>
+                    </div>
+                    <div class="price-item">
+                        <div class="skin-icon">🌟</div>
+                        <div class="skin-info">
+                            <span class="skin-name">Desert Eagle | Blaze</span>
+                            <span class="skin-price">~200 STM</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Transaction History -->
+            <section class="card">
+                <div class="card-header">
+                    <h2>📜 Transaction History</h2>
+                    <p class="header-subtitle">Your recent STM token transfers</p>
+                </div>
+                <div id="transactionHistory" class="transaction-list">
+                    <p class="empty-state">
+                        <span class="empty-icon">📭</span>
+                        No transactions yet. Start trading skins!
+                    </p>
+                </div>
+            </section>
+
+            <!-- Contract Info -->
+            <section class="card info-card">
+                <h3>⚙️ Contract Information</h3>
+                <div class="info-grid">
+                    <div class="info-row">
+                        <span class="info-label">
+                            <span class="info-icon">📝</span>
+                            Contract Address
+                        </span>
+                        <span id="contractAddress" class="info-value">Not connected</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">
+                            <span class="info-icon">🪙</span>
+                            Token Name
+                        </span>
+                        <span id="tokenName" class="info-value">STeamToken</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">
+                            <span class="info-icon">🏷️</span>
+                            Token Symbol
+                        </span>
+                        <span id="tokenSymbol" class="info-value">STM</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">
+                            <span class="info-icon">🌐</span>
+                            Network
+                        </span>
+                        <span id="networkName" class="info-value">Not connected</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay hidden">
+            <div class="spinner"></div>
+            <p id="loadingMessage">Processing transaction...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="../scripts/app.js"></script>
+
+    <script type="module">
+        import { AuthService } from "../scripts/auth.js";
+        import { BlockchainService } from "../scripts/blockchain.js";
+
+        const email = document.getElementById("email");
+        const password = document.getElementById("password");
+        const authStatus = document.getElementById("authStatus");
+
+        const loginBtn = document.getElementById("loginBtn");
+        const registerBtn = document.getElementById("registerBtn");
+        const connectWalletBtn = document.getElementById("connectWallet");
+
+        let isLoggedIn = false;
+
+        if (loginBtn) {
+            loginBtn.onclick = async () => {
+                try {
+                    authStatus.textContent = "";
+                    await AuthService.login(email.value, password.value);
+                    isLoggedIn = true;
+                    authStatus.textContent = "Logged in";
+                } catch (e) {
+                    authStatus.textContent = e.message;
+                }
+            };
+        }
+
+        if (registerBtn) {
+            registerBtn.onclick = async () => {
+                try {
+                    authStatus.textContent = "";
+                    await AuthService.register(email.value, password.value);
+                    authStatus.textContent = "Registered. Now login.";
+                } catch (e) {
+                    authStatus.textContent = e.message;
+                }
+            };
+        }
+
+        if (connectWalletBtn) {
+            connectWalletBtn.addEventListener("click", async (e) => {
+                if (!isLoggedIn) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    alert("Login first, then connect MetaMask.");
+                    return;
+                }
+
+                try {
+                    const blockchain = new BlockchainService();
+                    await blockchain.connectWallet();
+                    await AuthService.connectWallet(blockchain.account);
+                } catch (err) {
+                    alert(err.message);
+                }
+            }, true);
+        }
+    </script>
+</body>
+</html>

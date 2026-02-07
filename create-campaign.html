@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Campaign - STeam Market</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+
+    <div class="card" style="margin-bottom:20px">
+      <h2>Create Campaign</h2>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+        <button id="connectWallet" class="btn btn-primary">🦊 Connect Wallet</button>
+        <div id="walletInfo" style="opacity:.9"></div>
+      </div>
+
+      <div id="status" style="margin:10px 0"></div>
+
+      <form id="createCampaignForm">
+        <div class="form-group">
+          <label>Title</label>
+          <input id="title" type="text" placeholder="My Campaign" required />
+        </div>
+
+        <div class="form-group">
+          <label>Skin Name</label>
+          <input id="skinName" type="text" placeholder="AK-47 | Redline" required />
+        </div>
+
+        <div class="form-group">
+          <label>Goal (ETH)</label>
+          <input id="goal" type="number" step="0.0001" min="0" placeholder="0.5" required />
+        </div>
+
+        <div class="form-group">
+          <label>Duration (days)</label>
+          <input id="durationDays" type="number" min="1" placeholder="7" required />
+        </div>
+
+        <button id="createBtn" class="btn btn-primary btn-large" type="submit">
+          Create Campaign
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+  <script type="module" src="../scripts/create-campaign.js"></script>
+</body>
+</html>
