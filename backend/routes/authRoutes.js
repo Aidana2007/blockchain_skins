@@ -1,11 +1,1 @@
-const express = require("express");
-const router = express.Router();
-
-const authMiddleware = require("../middleware/authMiddleware");
-const { register, login, connectWallet } = require("../controllers/authController");
-
-router.post("/register", register);
-router.post("/login", login);
-router.post("/connect-wallet", authMiddleware, connectWallet);
-
-module.exports = router;
+const express = require('express');const router = express.Router();const {  register,  login,  getMe,  updateWallet} = require('../controllers/authController');const { protect } = require('../middleware/authMiddleware');router.post('/register', register);router.post('/login', login);router.get('/me', protect, getMe);router.put('/update-wallet', protect, updateWallet);module.exports = router;

@@ -1,42 +1,1 @@
-const User = require("../models/User");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-
-exports.register = async (req, res) => {
-  const { email, password } = req.body;
-
-  const hashed = await bcrypt.hash(password, 10);
-
-  const user = new User({ email, password: hashed });
-  await user.save();
-
-  res.json({ msg: "User registered" });
-};
-
-exports.login = async (req, res) => {
-  const { email, password } = req.body;
-
-  const user = await User.findOne({ email });
-  if (!user) return res.status(400).json({ msg: "User not found" });
-
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return res.status(400).json({ msg: "Wrong password" });
-
-  const token = jwt.sign(
-    { user: { id: user._id } },
-    "secretkey",
-    { expiresIn: "1h" }
-  );
-
-  res.json({ token });
-};
-
-exports.connectWallet = async (req, res) => {
-  const { walletAddress } = req.body;
-
-  const user = await User.findById(req.user.id);
-  user.walletAddress = walletAddress;
-  await user.save();
-
-  res.json({ msg: "Wallet connected" });
-};
+const jwt = require('jsonwebtoken');const User = require('../models/User');const generateToken = (userId) => {  return jwt.sign(    { id: userId },    process.env.JWT_SECRET || 'your-secret-key-change-in-production',    { expiresIn: '7d' }  );};const register = async (req, res) => {  try {    const { email, password, walletAddress } = req.body;    if (!email || !password || !walletAddress) {      return res.status(400).json({        success: false,        message: 'Please provide email, password, and wallet address'      });    }    console.log('🔍 Checking for existing user:', { email: email.toLowerCase(), walletAddress: walletAddress.toLowerCase() });    const existingUser = await User.findOne({      $or: [        { email: email.toLowerCase() },        { walletAddress: walletAddress.toLowerCase() }      ]    });    if (existingUser) {      const conflictField = existingUser.email === email.toLowerCase() ? 'email' : 'wallet address';      console.log('⚠️  User already exists:', existingUser.email, `(conflict: ${conflictField})`);      return res.status(400).json({        success: false,        message: `This ${conflictField} is already registered. ${conflictField === 'wallet address' ? 'Please use a different MetaMask account.' : 'Please use a different email or login.'}`      });    }    console.log('✅ No existing user found, creating new user');    const user = new User({      email: email.toLowerCase(),      password,      walletAddress: walletAddress.toLowerCase()    });    await user.save();    const token = generateToken(user._id);    res.status(201).json({      success: true,      message: 'User registered successfully',      data: {        token,        user: {          id: user._id,          email: user.email,          walletAddress: user.walletAddress        }      }    });  } catch (error) {    console.error('❌ Registration error:', error);    res.status(500).json({      success: false,      message: 'Error registering user',      error: error.message    });  }};const login = async (req, res) => {  try {    const { email, password } = req.body;    if (!email || !password) {      return res.status(400).json({        success: false,        message: 'Please provide email and password'      });    }    console.log('🔍 Attempting login for:', email.toLowerCase());    const user = await User.findOne({ email: email.toLowerCase() })      .select('+password')      .populate('ownedSkins');    if (!user) {      console.log('⚠️  User not found:', email.toLowerCase());      return res.status(401).json({        success: false,        message: 'Invalid credentials'      });    }    console.log('✅ User found, checking password');    let isPasswordValid = false;    try {      isPasswordValid = await user.comparePassword(password);    } catch (compareError) {      console.error('❌ Password comparison error:', compareError);      return res.status(500).json({        success: false,        message: 'Error validating password',        error: compareError.message      });    }    if (!isPasswordValid) {      console.log('❌ Invalid password for:', email.toLowerCase());      return res.status(401).json({        success: false,        message: 'Invalid credentials'      });    }    console.log('✅ Password valid, generating token');    user.lastLogin = new Date();    await user.save();    const token = generateToken(user._id);    res.json({      success: true,      message: 'Login successful',      data: {        token,        user: {          id: user._id,          email: user.email,          walletAddress: user.walletAddress,          ownedSkins: user.ownedSkins,          skinCount: user.ownedSkins.length        }      }    });  } catch (error) {    console.error('❌ Login error:', error);    res.status(500).json({      success: false,      message: 'Error logging in',      error: error.message    });  }};const getMe = async (req, res) => {  try {    const user = await User.findById(req.user.id)      .populate('ownedSkins')      .populate('createdCampaigns');    if (!user) {      return res.status(404).json({        success: false,        message: 'User not found'      });    }    res.json({      success: true,      data: {        user: {          id: user._id,          email: user.email,          walletAddress: user.walletAddress,          ownedSkins: user.ownedSkins,          createdCampaigns: user.createdCampaigns,          skinCount: user.ownedSkins.length,          campaignCount: user.createdCampaigns.length,          createdAt: user.createdAt,          lastLogin: user.lastLogin        }      }    });  } catch (error) {    console.error('Get profile error:', error);    res.status(500).json({      success: false,      message: 'Error fetching profile',      error: error.message    });  }};const updateWallet = async (req, res) => {  try {    const { walletAddress } = req.body;    if (!walletAddress) {      return res.status(400).json({        success: false,        message: 'Please provide wallet address'      });    }    const existingUser = await User.findOne({      walletAddress: walletAddress.toLowerCase(),      _id: { $ne: req.user.id }    });    if (existingUser) {      return res.status(400).json({        success: false,        message: 'This wallet address is already in use'      });    }    const user = await User.findById(req.user.id);    user.walletAddress = walletAddress.toLowerCase();    await user.save();    res.json({      success: true,      message: 'Wallet address updated successfully',      data: {        walletAddress: user.walletAddress      }    });  } catch (error) {    console.error('Update wallet error:', error);    res.status(500).json({      success: false,      message: 'Error updating wallet',      error: error.message    });  }};module.exports = {  register,  login,  getMe,  updateWallet};

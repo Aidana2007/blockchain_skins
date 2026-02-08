@@ -1,13 +1,1 @@
-const express = require("express");
-const router = express.Router();
-
-const authMiddleware = require("../middleware/authMiddleware");
-const { createSkin, getSkins, buySkin, getOwnedSkins } = require("../controllers/skinController");
-
-router.post("/", createSkin);
-router.get("/", getSkins);
-
-router.post("/buy", authMiddleware, buySkin);
-router.get("/owned", authMiddleware, getOwnedSkins);
-
-module.exports = router;
+const express = require('express');const router = express.Router();const {  getAllSkins,  getSkinById,  createSkin,  getUserOwnedSkins,  checkSkinOwnership,  checkUserBalance,  getPopularSkins} = require('../controllers/skinController');const { protect, optionalAuth } = require('../middleware/authMiddleware');router.get('/', optionalAuth, getAllSkins);router.get('/popular', getPopularSkins);router.get('/check-balance/:walletAddress', checkUserBalance);router.get('/:id', getSkinById);router.post('/', protect, createSkin);router.get('/user/owned', protect, getUserOwnedSkins);router.post('/:id/check-ownership', protect, checkSkinOwnership);module.exports = router;

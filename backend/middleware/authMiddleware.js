@@ -1,15 +1,1 @@
-const jwt = require("jsonwebtoken");
-
-module.exports = function (req, res, next) {
-  const token = req.header("Authorization");
-
-  if (!token) return res.status(401).json({ msg: "No token" });
-
-  try {
-    const decoded = jwt.verify(token, "secretkey");
-    req.user = decoded.user;
-    next();
-  } catch (err) {
-    res.status(401).json({ msg: "Token invalid" });
-  }
-};
+const jwt = require('jsonwebtoken');const User = require('../models/User');const protect = async (req, res, next) => {  try {    console.log('🔒 Protect middleware - checking auth');    let token;    if (      req.headers.authorization &&      req.headers.authorization.startsWith('Bearer')    ) {      token = req.headers.authorization.split(' ')[1];      console.log('Token found:', token ? 'Yes' : 'No');    }    if (!token) {      console.log('❌ No token provided');      return res.status(401).json({        success: false,        message: 'Not authorized to access this route. Please login.'      });    }    try {      const decoded = jwt.verify(        token,        process.env.JWT_SECRET || 'your-secret-key-change-in-production'      );      console.log('✅ Token verified for user:', decoded.id);      const user = await User.findById(decoded.id);      if (!user) {        console.log('❌ User not found:', decoded.id);        return res.status(401).json({          success: false,          message: 'User not found'        });      }      if (!user.isActive) {        console.log('❌ User not active:', user.email);        return res.status(401).json({          success: false,          message: 'User account is deactivated'        });      }      console.log('✅ Auth successful for:', user.email);      req.user = {        _id: user._id,        id: user._id,        email: user.email,        walletAddress: user.walletAddress      };      next();    } catch (error) {      console.log('❌ Token verification failed:', error.message);      return res.status(401).json({        success: false,        message: 'Not authorized. Token is invalid or expired.'      });    }  } catch (error) {    console.error('Auth middleware error:', error);    return res.status(500).json({      success: false,      message: 'Server error in authentication'    });  }};const optionalAuth = async (req, res, next) => {  try {    let token;    if (      req.headers.authorization &&      req.headers.authorization.startsWith('Bearer')    ) {      token = req.headers.authorization.split(' ')[1];    }    if (token) {      try {        const decoded = jwt.verify(          token,          process.env.JWT_SECRET || 'your-secret-key-change-in-production'        );        const user = await User.findById(decoded.id);        if (user && user.isActive) {          req.user = {            id: user._id,            email: user.email,            walletAddress: user.walletAddress          };        }      } catch (error) {        req.user = null;      }    }    next();  } catch (error) {    console.error('Optional auth middleware error:', error);    next();  }};module.exports = {  protect,  optionalAuth};

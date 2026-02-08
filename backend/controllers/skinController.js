@@ -1,43 +1,1 @@
-const Skin = require("../models/Skin");
-const User = require("../models/User");
-
-const createSkin = async (req, res) => {
-  const { name, baseTokenPrice, description } = req.body;
-
-  const skin = new Skin({ name, baseTokenPrice, description });
-  await skin.save();
-
-  res.json(skin);
-};
-
-const getSkins = async (req, res) => {
-  const skins = await Skin.find();
-  res.json(skins);
-};
-
-const buySkin = async (req, res) => {
-  const { skinName } = req.body;
-
-  const user = await User.findById(req.user.id);
-
-  if (user.ownedSkins.includes(skinName)) {
-    return res.status(400).json({ msg: "Skin already owned" });
-  }
-
-  user.ownedSkins.push(skinName);
-  await user.save();
-
-  res.json({ msg: "Skin purchased" });
-};
-
-const getOwnedSkins = async (req, res) => {
-  const user = await User.findById(req.user.id);
-  res.json(user.ownedSkins);
-};
-
-module.exports = {
-  createSkin,
-  getSkins,
-  buySkin,
-  getOwnedSkins,
-};
+const Skin = require('../models/Skin');const User = require('../models/User');const { getContract } = require('../config/blockchain');const getAllSkins = async (req, res) => {  try {    const { category, rarity, minPrice, maxPrice, sort } = req.query;    let filter = { isAvailable: true };    if (category) {      filter.category = category;    }    if (rarity) {      filter.rarity = rarity;    }    if (minPrice || maxPrice) {      filter.priceSTM = {};      if (minPrice) filter.priceSTM.$gte = Number(minPrice);      if (maxPrice) filter.priceSTM.$lte = Number(maxPrice);    }    let sortOption = {};    if (sort === 'price-asc') {      sortOption.priceSTM = 1;    } else if (sort === 'price-desc') {      sortOption.priceSTM = -1;    } else if (sort === 'popular') {      sortOption.totalPurchases = -1;    } else {      sortOption.createdAt = -1;     }    const skins = await Skin.find(filter).sort(sortOption);    res.json({      success: true,      count: skins.length,      data: { skins }    });  } catch (error) {    console.error('Get skins error:', error);    res.status(500).json({      success: false,      message: 'Error fetching skins',      error: error.message    });  }};const getSkinById = async (req, res) => {  try {    const skin = await Skin.findById(req.params.id);    if (!skin) {      return res.status(404).json({        success: false,        message: 'Skin not found'      });    }    res.json({      success: true,      data: { skin }    });  } catch (error) {    console.error('Get skin error:', error);    res.status(500).json({      success: false,      message: 'Error fetching skin',      error: error.message    });  }};const createSkin = async (req, res) => {  try {    const { name, description, priceSTM, imageUrl, rarity, category } = req.body;    if (!name || !description || !priceSTM) {      return res.status(400).json({        success: false,        message: 'Please provide name, description, and price'      });    }    const existingSkin = await Skin.findOne({ name });    if (existingSkin) {      return res.status(400).json({        success: false,        message: 'Skin with this name already exists'      });    }    const skin = new Skin({      name,      description,      priceSTM,      imageUrl: imageUrl || '/images/default-skin.png',      rarity: rarity || 'Common',      category: category || 'Other'    });    await skin.save();    res.status(201).json({      success: true,      message: 'Skin created successfully',      data: { skin }    });  } catch (error) {    console.error('Create skin error:', error);    res.status(500).json({      success: false,      message: 'Error creating skin',      error: error.message    });  }};const getUserOwnedSkins = async (req, res) => {  try {    const user = await User.findById(req.user.id).populate('ownedSkins');    if (!user) {      return res.status(404).json({        success: false,        message: 'User not found'      });    }    res.json({      success: true,      count: user.ownedSkins.length,      data: {        skins: user.ownedSkins      }    });  } catch (error) {    console.error('Get owned skins error:', error);    res.status(500).json({      success: false,      message: 'Error fetching owned skins',      error: error.message    });  }};const checkSkinOwnership = async (req, res) => {  try {    const user = await User.findById(req.user.id);    const skin = await Skin.findById(req.params.id);    if (!skin) {      return res.status(404).json({        success: false,        message: 'Skin not found'      });    }    const owns = user.ownsSkin(skin._id);    res.json({      success: true,      data: {        skinId: skin._id,        skinName: skin.name,        owns      }    });  } catch (error) {    console.error('Check ownership error:', error);    res.status(500).json({      success: false,      message: 'Error checking ownership',      error: error.message    });  }};const checkUserBalance = async (req, res) => {  try {    const { walletAddress } = req.params;    const { skinId } = req.query;    if (!skinId) {      return res.status(400).json({        success: false,        message: 'Please provide skinId'      });    }    const skin = await Skin.findById(skinId);    if (!skin) {      return res.status(404).json({        success: false,        message: 'Skin not found'      });    }    const steamTokenContract = getContract('steamToken');    const balance = await steamTokenContract.balanceOf(walletAddress);    const balanceInSTM = Number(ethers.formatEther(balance));    const canAfford = balanceInSTM >= skin.priceSTM;    res.json({      success: true,      data: {        balance: balanceInSTM,        skinPrice: skin.priceSTM,        canAfford      }    });  } catch (error) {    console.error('Check balance error:', error);    res.status(500).json({      success: false,      message: 'Error checking balance',      error: error.message    });  }};const getPopularSkins = async (req, res) => {  try {    const limit = parseInt(req.query.limit) || 10;    const skins = await Skin.getPopularSkins(limit);    res.json({      success: true,      count: skins.length,      data: { skins }    });  } catch (error) {    console.error('Get popular skins error:', error);    res.status(500).json({      success: false,      message: 'Error fetching popular skins',      error: error.message    });  }};module.exports = {  getAllSkins,  getSkinById,  createSkin,  getUserOwnedSkins,  checkSkinOwnership,  checkUserBalance,  getPopularSkins};

@@ -1,20 +1,57 @@
-node_modules
-gas-report.txt
+# Dependencies
+node_modules/
+package-lock.json
 
 # Environment variables
 .env
+.env.local
+.env.production
+.env.development
+backend/.env
+backend/.env.*
 
-# Hardhat files
-/cache
-/artifacts
+# Hardhat
+cache/
+artifacts/
+deployments/
+typechain-types/
 
-# TypeChain files
-/typechain
-/typechain-types
+# MongoDB
+data/
+*.log
 
-# solidity-coverage files
-/coverage
-/coverage.json
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Hardhat Ignition default folder for deployments against a local node
-ignition/deployments/chain-31337
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+build/
+out/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Secrets (NEVER commit these!)
+*.key
+*.pem
+private-keys/
+
+# Deployment logs
+deployment-*.json
+
+# Frontend artifacts
+frontend/contracts/

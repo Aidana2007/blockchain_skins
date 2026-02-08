@@ -1,31 +1,1 @@
-const hre = require("hardhat");
-
-async function main() {
-  const [deployer] = await hre.ethers.getSigners();
-
-  console.log("Deploying with account:", deployer.address);
-
-  const SteamToken = await hre.ethers.getContractFactory("STeamToken");
-  const steamToken = await SteamToken.deploy();
-  await steamToken.waitForDeployment();
-
-  console.log("SteamToken deployed to:", await steamToken.getAddress());
-
-  const Crowdfunding = await hre.ethers.getContractFactory("Crowdfunding");
-  const crowdfunding = await Crowdfunding.deploy(await steamToken.getAddress());
-  await crowdfunding.waitForDeployment();
-
-  console.log("Crowdfunding deployed to:", await crowdfunding.getAddress());
-
-  const tx = await steamToken.setCrowdfundingContract(
-    await crowdfunding.getAddress()
-  );
-  await tx.wait();
-
-  console.log("Crowdfunding contract set in SteamToken");
-}
-
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+const hre = require("hardhat");const fs = require('fs');const path = require('path');async function main() {  console.log('\n🚀 Starting deployment process...\n');  const [deployer] = await hre.ethers.getSigners();  console.log('📝 Deploying contracts with account:', deployer.address);  const balance = await hre.ethers.provider.getBalance(deployer.address);  console.log('💰 Account balance:', hre.ethers.formatEther(balance), 'ETH\n');  const network = await hre.ethers.provider.getNetwork();  console.log('🌐 Network:', network.name);  console.log('🔗 Chain ID:', network.chainId);  console.log('');  console.log('1️⃣  Deploying SteamToken...');  const SteamToken = await hre.ethers.getContractFactory("SteamToken");  const steamToken = await SteamToken.deploy();  await steamToken.waitForDeployment();  const steamTokenAddress = await steamToken.getAddress();  console.log('✅ SteamToken deployed to:', steamTokenAddress);  console.log('');  console.log('2️⃣  Deploying Crowdfunding...');  const Crowdfunding = await hre.ethers.getContractFactory("Crowdfunding");  const crowdfunding = await Crowdfunding.deploy(steamTokenAddress);  await crowdfunding.waitForDeployment();  const crowdfundingAddress = await crowdfunding.getAddress();  console.log('✅ Crowdfunding deployed to:', crowdfundingAddress);  console.log('');  console.log('3️⃣  Deploying SkinPayment...');  const SkinPayment = await hre.ethers.getContractFactory("SkinPayment");  const skinPayment = await SkinPayment.deploy(steamTokenAddress);  await skinPayment.waitForDeployment();  const skinPaymentAddress = await skinPayment.getAddress();  console.log('✅ SkinPayment deployed to:', skinPaymentAddress);  console.log('');  console.log('4️⃣  Configuring SteamToken permissions...');  console.log('   Setting Crowdfunding contract...');  const setCrowdfundingTx = await steamToken.setCrowdfundingContract(crowdfundingAddress);  await setCrowdfundingTx.wait();  console.log('   ✅ Crowdfunding contract set');  console.log('   Setting SkinPayment contract...');  const setSkinPaymentTx = await steamToken.setSkinPaymentContract(skinPaymentAddress);  await setSkinPaymentTx.wait();  console.log('   ✅ SkinPayment contract set');  console.log('');  const deploymentInfo = {    network: network.name,    chainId: Number(network.chainId),    deployer: deployer.address,    deployedAt: new Date().toISOString(),    contracts: {      SteamToken: {        address: steamTokenAddress,        name: 'SteamToken',        symbol: 'STM'      },      Crowdfunding: {        address: crowdfundingAddress,        platformFee: '5%'      },      SkinPayment: {        address: skinPaymentAddress,        platformFee: '1%'      }    }  };  const deploymentsDir = path.join(__dirname, '../deployments');  if (!fs.existsSync(deploymentsDir)) {    fs.mkdirSync(deploymentsDir, { recursive: true });  }  const filename = `deployment-${network.name}-${Date.now()}.json`;  const filepath = path.join(deploymentsDir, filename);  fs.writeFileSync(filepath, JSON.stringify(deploymentInfo, null, 2));  console.log('💾 Deployment info saved to:', filename);  const envTemplate = `# Blockchain ConfigurationRPC_URL=http:CHAIN_ID=${network.chainId}# Contract Addresses (Deployed on ${network.name})STEAM_TOKEN_ADDRESS=${steamTokenAddress}CROWDFUNDING_ADDRESS=${crowdfundingAddress}SKIN_PAYMENT_ADDRESS=${skinPaymentAddress}# Platform Owner (Deployer)PLATFORM_OWNER_ADDRESS=${deployer.address}# PLATFORM_OWNER_PRIVATE_KEY=your-private-key-here# MongoDBMONGODB_URI=mongodb:# JWT SecretJWT_SECRET=your-super-secret-jwt-key-change-in-production# Server ConfigurationPORT=5000NODE_ENV=developmentFRONTEND_URL=http:`;  const envPath = path.join(__dirname, '../backend/.env.production');  fs.writeFileSync(envPath, envTemplate.trim());  console.log('📝 Environment template saved to: backend/.env.production');  console.log('\n' + '='.repeat(70));  console.log('🎉 DEPLOYMENT SUCCESSFUL!');  console.log('='.repeat(70));  console.log('\n📋 Contract Addresses:');  console.log('   SteamToken:     ', steamTokenAddress);  console.log('   Crowdfunding:   ', crowdfundingAddress);  console.log('   SkinPayment:    ', skinPaymentAddress);  console.log('\n📝 Next Steps:');  console.log('   1. Copy contract addresses to backend/.env');  console.log('   2. Update frontend configuration');  console.log('   3. Start MongoDB: mongod');  console.log('   4. Start backend: cd backend && npm start');  console.log('   5. Start frontend: Open frontend/index.html');  console.log('\n💡 Tip: Save your deployer private key securely!');  console.log('='.repeat(70) + '\n');  if (network.name !== 'hardhat' && network.name !== 'localhost') {    console.log('🔍 To verify contracts on Etherscan:');    console.log(`   npx hardhat verify --network ${network.name} ${steamTokenAddress}`);    console.log(`   npx hardhat verify --network ${network.name} ${crowdfundingAddress} ${steamTokenAddress}`);    console.log(`   npx hardhat verify --network ${network.name} ${skinPaymentAddress} ${steamTokenAddress}`);    console.log('');  }}main()  .then(() => process.exit(0))  .catch((error) => {    console.error('\n❌ Deployment failed:', error);    process.exit(1);  });

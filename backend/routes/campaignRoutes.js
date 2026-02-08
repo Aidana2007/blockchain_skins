@@ -1,13 +1,1 @@
-const express = require("express");
-const router = express.Router();
-const {
-  createCampaign,
-  getCampaigns,
-  attachBlockchainId,
-} = require("../controllers/campaignController");
-
-router.post("/", createCampaign);
-router.get("/", getCampaigns);
-router.put("/:id/blockchain", attachBlockchainId);
-
-module.exports = router;
+const express = require('express');const router = express.Router();const {  getAllCampaigns,  getCampaignById,  getCampaignByBlockchainId,  getActiveCampaigns,  getCampaignsByCreator,  getMyCampaigns,  getCampaignBlockchainData,  getUserContribution,  syncCampaignFromBlockchain,  createCampaign} = require('../controllers/campaignController');const { protect, optionalAuth } = require('../middleware/authMiddleware');router.get('/', optionalAuth, getAllCampaigns);router.get('/active', getActiveCampaigns);router.get('/blockchain/:blockchainId', getCampaignByBlockchainId);router.get('/user/:userId', getCampaignsByCreator);router.get('/:id', getCampaignById);router.get('/:id/blockchain-data', getCampaignBlockchainData);router.get('/:id/contribution/:walletAddress', getUserContribution);router.post('/', (req, res, next) => {  console.log('📥 POST /api/campaigns - Route hit');  console.log('Auth header:', req.headers.authorization ? 'Present' : 'Missing');  next();}, protect, createCampaign);router.get('/user/my-campaigns', protect, getMyCampaigns);router.post('/:id/sync', protect, syncCampaignFromBlockchain);module.exports = router;
