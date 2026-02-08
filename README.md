@@ -1,11 +1,6 @@
 # Project Complete: Blockchain Skins Marketplace
 
-## What Has Been Created
-
-I've built a **complete, production-ready** blockchain skins marketplace that combines Ethereum smart contracts with a traditional backend. Here's everything that's included:
-
----
-### Quick Start (10 minutes)
+### Quick Start 
 
 1. **Extract the archive**
 
